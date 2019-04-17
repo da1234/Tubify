@@ -1,0 +1,17 @@
+{% extends "base.html"%}
+{% import "bootstrap/wtf.html" as wtf%}
+
+{% block scripts %}
+  {{super()}}
+{% endblock %}
+
+{% block app_content %}
+{% if vid_title %}
+{% endif %}
+<div class="row">
+  <div class="col-md-4 col-md-offset-4">
+    <h1>{{vid_title}}</h1>
+    {{wtf.quick_form(form,form_type="inline")}}
+  </div>
+</div>
+{% endblock %}
