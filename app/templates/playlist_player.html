@@ -1,0 +1,19 @@
+{% extends "base.html"%}
+{% from "bootstrap/form.html" import render_form, form_errors%}
+
+{% block app_content %}
+  <div class="row justify-content-center">
+    <div class="col-4" align="center">
+      {% for song in songs %}
+        <div class="card">
+          <div class="card-header">
+              {{song.title}}
+          </div>
+          <div class="card-body">
+            <i class="fas fa-play"></i>                          
+          </div>
+        </div>
+      {%endfor%}
+    </div>
+  </div>
+{% endblock %}

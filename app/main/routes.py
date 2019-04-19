@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for
+from flask import render_template, request, redirect, url_for,flash, g
 from app.main import bp
 from app.main.forms import SearchSongForm, MakePlaylistForm
 from flask_login import current_user, login_required
@@ -31,33 +31,36 @@ def player():
     url = request.args.get('url',None)
     results = search_results(vid_title,video_id, url)
     form = MakePlaylistForm()
+    edit_form = EditPlaylistForm()
+    current_playlists = current_user.playlists
+    add = request.args.get('add',None)
     if form.validate_on_submit():
-        s = Song(title=vid_title,youtube_id=video_id)
+        s = Song.query.filter_by(title=vid_title).first()
+        if not s:
+            s = Song(title=vid_title,youtube_id=video_id)
+        p = Playlist.query.filter_by(name=form.playlist_name.data,author=current_user).first()
+        if p is not None:
+            flash('Playlist already exists!', 'error')
+            return render_template("song_player.html",results=results,form=form)
         p = Playlist(name=form.playlist_name.data)
         p.songs.append(s)
         current_user.playlists.append(p)
         db.session.add(s)
         db.session.add(p)
         db.session.commit()
+        flash("Yay! added new Playlist")
         return redirect(url_for('main.index'))
-    return render_template("song_player.html",results=results,form=form)
+    if request.method == 'POST' and add:
+        for playlist in current_playlists:
+            if request.form.get(playlist,False):
+                print(f"adding: {playlist}")
+    return render_template("song_player.html",results=results,form=form,
+    edit_form=edit_form,playlists=current_playlists)
 
 
-@bp.route('/new_playlist', methods=['GET','POST'])
+@bp.route('/playlist_player/<name>', methods=['GET','POST'])
 @login_required
-def new_playlist():
-    form = MakePlaylistForm()
-    video_id = request.args.get('id',None)
-    vid_title = request.args.get('title',None)
-    url = request.args.get('url',None)
-    print('res',video_id,vid_title,url)
-    if form.validate_on_submit():
-        s = Song(title=vid_title,youtube_id=video_id)
-        p = Playlist(name=form.playlist_name.data)
-        p.songs.append(s)
-        current_user.playlists.append(p)
-        db.session.add(s)
-        db.session.add(p)
-        db.session.commit()
-        return redirect(url_for('main.index'))
-    return render_template("new_playlist.html",form=form,video_id=video_id,vid_title=vid_title,url=url)
+def playlist_player(name):
+    playlist = Playlist.query.filter_by(name=name,author=current_user).first()
+    songs = playlist.songs
+    return render_template("playlist_player.html",songs=songs)

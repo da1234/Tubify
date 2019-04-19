@@ -55,16 +55,15 @@ class User(UserMixin, db.Model):
 def load_user(id):
     return User.query.get(int(id))
 
-
 class Song(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(64))
-    youtube_id = db.Column(db.String(64), unique=True)    
+    title = db.Column(db.String(64),unique=True, index=True)
+    youtube_id = db.Column(db.String(64), unique=True, index=True)
 
 
 class Playlist(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(64), unique=True)
+    name = db.Column(db.String(64), unique=True, index=True)
     owner_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     songs = db.relationship('Song', secondary=playlist_to_song,
         lazy='subquery', backref=db.backref('playlist',lazy=True))

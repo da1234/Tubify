@@ -1,58 +1,73 @@
-{%extends "bootstrap/base.html" %}
-
-{% block title %}
-  {% if title %}
-    {{title}} - Music Player
-    {% else %}
-      Welcome to Music Player
-  {% endif %}
-{%endblock%}
-
-{% block head%}
-  {{super()}}
-{%endblock%}
-
-{%block styles%}
-  {{super()}}
-{%endblock%}
-
-{%block scripts%}
-  {{super()}}
-  <script src="https://apis.google.com/js/api.js"></script>
-{%endblock%}
-
-{% block navbar %}
-    <nav class="navbar navbar-default">
-        <div class="container">
-            <div class="navbar-header">
-                <a class="navbar-brand" href="{{ url_for('main.index') }}">Music App</a>
-            </div>
-            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-                <ul class="nav navbar-nav">
-                    <li><a href="{{ url_for('main.index') }}">Home</a></li>
-                    <li><a href="{{ url_for('main.search') }}">Search</a></li>
-                </ul>
-                <ul class="nav navbar-nav navbar-right">
-                  {% if current_user.is_anonymous %}
-                      <li><a href="{{ url_for('auth.login') }}">Login</a></li>
-                      {% else %}
-                      <li><a href="{{ url_for('auth.logout') }}">Logout</a></li>
-                  {% endif %}
-                </ul>
-            </div>
+{% from 'bootstrap/nav.html' import render_nav_item %}
+<html lang="en" id="main">
+  <head>
+    {% block head %}
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+      {% block styles %}
+        {{ bootstrap.load_css() }}
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+      {% endblock %}
+      <title>
+        {% if title %}
+          {{title}} - Music Player
+          {% else %}
+            Welcome to Music Player
+        {% endif %}
+      </title>
+    {% endblock %}
+    </head>
+    <body>
+      <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="{{ url_for('main.index') }}">Music App</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                {{ render_nav_item('main.index', 'Home', use_li=True) }}
+                {{ render_nav_item('main.search', 'Search', use_li=True) }}
+            </ul>
+            <ul class="navbar-nav navbar-right">
+                {% if current_user.is_anonymous %}
+                  {{ render_nav_item('auth.login', 'Login', use_li=True) }}
+                  {% else %}
+                  {{ render_nav_item('auth.logout', 'Logout', use_li=True) }}
+                {% endif %}
+            </ul>
         </div>
-    </nav>
-{% endblock %}
+      </nav>
+      {% block content %}
+          <div class="container-fluid">
+            <div class="row">
+              {%set playlists = current_user.playlists%}
+              <div class="col-md-2" algin="left">
+                <nav class="nav nav-pills flex-column">
+                  <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Playlists</a>
+                  {% for playlist in playlists %}
+                    <a class="nav-link" id="{{playlist.name}}" data-type="playlist" data-playlist-url="{{url_for('main.playlist_player',name=playlist.name)}}" data-toggle="pill" role="tablist" aria-orientation="vertical" aria-selected="true">{{playlist.name}}</a>
+                  {% endfor %}
+              </nav>
+              </div>
+              <div class="col">
+                {% with messages = get_flashed_messages() %}
+                  {% if messages %}
+                      {% for message in messages %}
+                        <div class="alert alert-info" role="alert">{{ message }}</div>
+                      {% endfor %}
+                  {% endif %}
+                {% endwith %}
+                {% block app_content %}{% endblock %}
+              </div>
+            </div>
+          </div>
+      {% endblock %}
 
-{% block content %}
-    <div class="container">
-        {% with messages = get_flashed_messages() %}
-          {% if messages %}
-              {% for message in messages %}
-              <div class="alert alert-info" role="alert">{{ message }}</div>
-              {% endfor %}
-          {% endif %}
-        {% endwith %}
-        {% block app_content %}{% endblock %}
-    </div>
-{% endblock %}
+      {% block scripts %}
+        {{ bootstrap.load_js() }}
+        <script type="text/javascript" src="{{url_for('static',filename='main.js')}}"></script>
+        <script src="https://apis.google.com/js/api.js"></script>
+      {% endblock %}
+    </body>
+</html>
