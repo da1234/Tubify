@@ -1,19 +1,59 @@
 {% extends "base.html"%}
 {% from "bootstrap/form.html" import render_form, form_errors%}
 
+{% block scripts %}
+  {{super()}}
+  <!-- <script type="text/javascript" src="{{url_for('static',filename='youtube.js')}}"></script> -->
+  <script type="text/javascript">{% include "youtube.js" %}</script>
+  <script type="text/javascript" src="{{url_for('static',filename='playlistPlayer.js')}}"></script>
+{% endblock %}
+
 {% block app_content %}
-  <div class="row justify-content-center">
-    <div class="col-4" align="center">
-      {% for song in songs %}
-        <div class="card">
-          <div class="card-header">
-              {{song.title}}
+  <div class="row justify-content-center" style="margin-top:40px">
+    <div class="col-2" align="center">
+        <button id="backward-button" type="button" class="btn btn-outline-primary">
+          <i class="fas fa-backward"></i>
+        </button>
+    </div>
+    <div class="col-2" align="center">
+        <button id="play-all-button" type="button" class="btn btn-outline-primary">
+          Play
+        </button>
+    </div>
+    <div class="col-2" align="center">
+        <button id="forward-button" type="button" class="btn btn-outline-primary">
+          <i class="fas fa-forward"></i>
+        </button>
+    </div>
+  </div>
+  {% for song in songs %}
+    <div class="row justify-content-center" style="margin-top:40px">
+      <div class="col-6" align="center">
+          <div class="card">
+            <div class="card-header">
+                {{song.title}}
+            </div>
+            <div class="card-body">
+              <button id="play-button-{{loop.index0}}" type="button" class="btn btn-secondary" onclick="changeSong('{{song.youtube_id}}',this)" data-song-id="{{song.youtube_id}}" data-status="ready" name="play-button">
+              </button>
+            </div>
           </div>
-          <div class="card-body">
-            <i class="fas fa-play"></i>                          
-          </div>
+      </div>
+    </div>
+    {%if not loop.last %}
+      <div class="row align-items-center justify-content-center" style="margin-top:40px">
+        <div class="col-6" align="center"">
+          <i class="fas fa-angle-double-down"></i>
         </div>
-      {%endfor%}
+      </div>
+    {% endif %}
+  {% endfor %}
+
+  <!-- hidden iframe -->
+  <input type="hidden" id="video_id" value="{{songs[0].youtube_id}}" data-no-songs="{{songs|length}}" data-currently-playing="" data-next-song-idx="{{0}}">
+  <div class="row">
+    <div class="col">
+      <div id="player" style="width:0%;height:0%"></div>
     </div>
   </div>
 {% endblock %}
